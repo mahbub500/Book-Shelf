@@ -1,0 +1,19 @@
+{
+    "name": "book_shelf/book_shelf",
+    "description": "Personal book management plugin for WordPress.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "BookShelf\\": "app/"
+        },
+        "files": ["app/Helper/functions.php"]
+    },
+    "authors": [
+        {
+            "name": "Mahbub Ahmed",
+            "email": "your-email@example.com",
+            "homepage": "https://your-website.com"
+        }
+    ]
+}
