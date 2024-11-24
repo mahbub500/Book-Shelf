@@ -1,5 +1,5 @@
 <?php
-namespace EasyCommerce\Trait;
+namespace BookShelf\Trait;
 
 defined( 'ABSPATH' ) || exit;
 

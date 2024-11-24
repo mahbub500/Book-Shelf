@@ -52,12 +52,9 @@ class Initializer {
 
 			foreach ( glob( $controller_dir . '*.php' ) as $file ) {
 				$class_name = basename( $file, '.php' );
-				$controller = "\\BOOKSHELF\\Controller\\Public\\{$class_name}";
-
-
+				$controller = "\\BookShelf\\Controller\\Public\\{$class_name}";
 
 				if ( class_exists( $controller ) ) {
-					print_r( $controller );
 					new $controller;
 				}
 			}

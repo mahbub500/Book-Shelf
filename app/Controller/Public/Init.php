@@ -21,7 +21,7 @@ class Init {
 	}
 
 	public function head(){
-		Utility::pri( 'Test' )
+		
 	}
 
 	/**

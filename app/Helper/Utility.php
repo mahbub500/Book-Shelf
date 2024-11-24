@@ -1,5 +1,5 @@
 <?php
-namespace EasyCommerce\Helper;
+namespace BookShelf\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
