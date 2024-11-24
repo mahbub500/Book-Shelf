@@ -20,9 +20,7 @@ class Init {
 		$this->action( 'wp_head', [ $this, 'head' ] );
 	}
 
-	public function head(){
-		
-	}
+	public function head(){}
 
 	/**
      * Adds custom body class to the admin area.
