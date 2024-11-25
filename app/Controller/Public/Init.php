@@ -21,7 +21,9 @@ class Init {
 
 	public function head(){
 
-		echo  '<p class="outline-2">Test</p>' ;
+		// Utility::pri( BOOKSHELF_PLUGIN_URL );
+
+		// echo  '<p class="outline-2">Test</p>' ;
 	}
 
 

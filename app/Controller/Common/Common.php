@@ -16,10 +16,12 @@ class Common {
 	 * Constructor to add all hooks.
 	 */
 	public function __construct() {
-
-		
-		
+		// $this->shortcode( 'book-list', [ $this, 'dashboard' ] );
 	}
+
+	public function dashboard( $atts ) {
+    return ' Test';
+}
 
 	
 

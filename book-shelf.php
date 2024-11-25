@@ -26,7 +26,7 @@ define( 'BOOKSHELF_FILE', __FILE__ );
 define( 'BOOKSHELF_VERSION', '0.9' );
 define( 'BOOKSHELF_PLUGIN_DIR', plugin_dir_path( BOOKSHELF_FILE ) );
 define( 'BOOKSHELF_PLUGIN_URL', plugin_dir_url( BOOKSHELF_FILE ) );
-// define( 'BOOKSHELF_ASSETS_URL', BOOKSHELF_PLUGIN_URL . 'assets/' );
+define( 'BOOKSHELF_ASSETS_URL', BOOKSHELF_PLUGIN_URL . 'Assets/' );
 // define( 'BOOKSHELF_BUILD_URL', BOOKSHELF_PLUGIN_URL . 'build/' );
 // define( 'BOOKSHELF_SPA_URL', BOOKSHELF_PLUGIN_URL . 'spa/' );
 define( 'BOOKSHELF_SANDBOX', true );
