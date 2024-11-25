@@ -22,12 +22,43 @@ class Shortcode {
 		$this->shortcode( 'bookshelf-dashboard', [ $this, 'dashboard' ] );
 	}
 
+    public function dashboard($atts) {
+    // HTML content to render the dashboard
+    return sprintf(
+        '
+        <div>
+            <!-- Contributors Section -->
+            <div class="flex items-center space-x-2 text-base">
+                <h4 class="font-semibold text-slate-900">Contributors</h4>
+                <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">204</span>
+            </div>
 
+            <!-- Contributors Images -->
+            <div class="mt-3 flex -space-x-2 overflow-hidden">
+                <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" 
+                     src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                     alt="Contributor 1" />
+                <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" 
+                     src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                     alt="Contributor 2" />
+                <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" 
+                     src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80" 
+                     alt="Contributor 3" />
+                <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" 
+                     src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                     alt="Contributor 4" />
+                <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" 
+                     src="https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                     alt="Contributor 5" />
+            </div>
 
+            <!-- Additional Contributors Link -->
+            <div class="mt-3 text-sm font-medium">
+                <a href="#" class="text-blue-500">+ 198 others</a>
+            </div>
+        </div>
+        '
+    );
+}
 
-	public function dashboard( $atts ) {
-
-        return sprintf( '<div id="bookshelf-dashboard" class="">Hello</div>' );
-		
-	}
 }
