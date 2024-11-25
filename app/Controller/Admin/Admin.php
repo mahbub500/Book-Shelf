@@ -7,7 +7,7 @@ use BookShelf\Trait\Hook;
 use BookShelf\Helper\Utility;
 
 
-class Init {
+class Admin {
 
 	use Hook;
 
@@ -16,10 +16,9 @@ class Init {
 	 * Constructor to add all hooks.
 	 */
 	public function __construct() {
-		$this->action( 'wp_head', [ $this, 'head' ] );
+		
 	}
 
-	public function head(){}
-
+	
 
 }

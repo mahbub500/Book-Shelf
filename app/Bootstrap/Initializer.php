@@ -12,9 +12,9 @@ class Initializer {
 		$initializer = new self();
 
 		// $initializer->load_config();
-		// $initializer->load_admin_controllers();
+		$initializer->load_admin_controllers();
 		$initializer->load_public_controllers();
-		// $initializer->load_common_controllers();
+		$initializer->load_common_controllers();
 	}
 
 	public function load_config() {
@@ -34,9 +34,11 @@ class Initializer {
 
 			foreach ( glob( $controller_dir . '*.php' ) as $file ) {
 				$class_name = basename( $file, '.php' );
-				$controller = "\\BOOKSHELF\\Controller\\Admin\\{$class_name}";
+				$controller = "\\BookShelf\\Controller\\Admin\\{$class_name}";
+
 
 				if ( class_exists( $controller ) ) {
+				print_r( $controller );
 					new $controller;
 				}
 			}
@@ -69,7 +71,7 @@ class Initializer {
 
 		foreach ( glob( $controller_dir . '*.php' ) as $file ) {
 			$class_name = basename( $file, '.php' );
-			$controller = "\\BOOKSHELF\\Controller\\Common\\{$class_name}";
+			$controller = "\\BookShelf\\Controller\\Common\\{$class_name}";
 
 			if ( class_exists( $controller ) ) {
 				new $controller;
