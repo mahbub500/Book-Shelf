@@ -1,2 +1,10 @@
+# Node.js dependencies
 node_modules/
-build/
+
+# PHP Composer dependencies
+vendor/
+
+# General exclusions
+.env
+*.log
+.DS_Store
