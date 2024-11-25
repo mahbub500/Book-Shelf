@@ -19,7 +19,10 @@ class Init {
 		$this->action( 'wp_head', [ $this, 'head' ] );
 	}
 
-	public function head(){}
+	public function head(){
+
+		echo  '<p class="outline-2">Test</p>' ;
+	}
 
 
 }

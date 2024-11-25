@@ -16,6 +16,8 @@ class Common {
 	 * Constructor to add all hooks.
 	 */
 	public function __construct() {
+
+		
 		
 	}
 
