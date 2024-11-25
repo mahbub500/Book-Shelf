@@ -4,6 +4,9 @@ node_modules/
 # PHP Composer dependencies
 vendor/
 
+# Build folder
+build/
+
 # General exclusions
 .env
 *.log
