@@ -1,5 +1,5 @@
 <?php
-namespace EasyCommerce\Bootstrap\Activator;
+namespace BookShelf\Bootstrap\Activator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -7,17 +7,17 @@ class Taxonomy {
 
 	public function register() {
 		$category_labels = [
-			'name'              => _x( 'Categories', 'taxonomy general name', 'easycommerce' ),
-			'singular_name'     => _x( 'Category', 'taxonomy singular name', 'easycommerce' ),
-			'search_items'      => __( 'Search Categories', 'easycommerce' ),
-			'all_items'         => __( 'All Categories', 'easycommerce' ),
-			'parent_item'       => __( 'Parent Category', 'easycommerce' ),
-			'parent_item_colon' => __( 'Parent Category:', 'easycommerce' ),
-			'edit_item'         => __( 'Edit Category', 'easycommerce' ),
-			'update_item'       => __( 'Update Category', 'easycommerce' ),
-			'add_new_item'      => __( 'Add New Category', 'easycommerce' ),
-			'new_item_name'     => __( 'New Category Name', 'easycommerce' ),
-			'menu_name'         => __( 'Categories', 'easycommerce' ),
+			'name'              => _x( 'Categories', 'taxonomy general name', 'book-shelf' ),
+			'singular_name'     => _x( 'Category', 'taxonomy singular name', 'book-shelf' ),
+			'search_items'      => __( 'Search Categories', 'book-shelf' ),
+			'all_items'         => __( 'All Categories', 'book-shelf' ),
+			'parent_item'       => __( 'Parent Category', 'book-shelf' ),
+			'parent_item_colon' => __( 'Parent Category:', 'book-shelf' ),
+			'edit_item'         => __( 'Edit Category', 'book-shelf' ),
+			'update_item'       => __( 'Update Category', 'book-shelf' ),
+			'add_new_item'      => __( 'Add New Category', 'book-shelf' ),
+			'new_item_name'     => __( 'New Category Name', 'book-shelf' ),
+			'menu_name'         => __( 'Categories', 'book-shelf' ),
 		];
 
 		$category_args = [
@@ -26,36 +26,10 @@ class Taxonomy {
 			'show_ui'           => true,
 			'show_admin_column' => true,
 			'query_var'         => true,
-			'rewrite'           => [ 'slug' => 'product-cat' ],
+			'rewrite'           => [ 'slug' => 'book-cat' ],
 			'show_in_rest'      => true,
 		];
 
-		register_taxonomy( 'product_cat', [ 'product' ], $category_args );
-		
-		$brand_labels = [
-			'name'              => _x( 'Brands', 'taxonomy general name', 'easycommerce' ),
-			'singular_name'     => _x( 'Brand', 'taxonomy singular name', 'easycommerce' ),
-			'search_items'      => __( 'Search Brands', 'easycommerce' ),
-			'all_items'         => __( 'All Brands', 'easycommerce' ),
-			'parent_item'       => __( 'Parent Brand', 'easycommerce' ),
-			'parent_item_colon' => __( 'Parent Brand:', 'easycommerce' ),
-			'edit_item'         => __( 'Edit Brand', 'easycommerce' ),
-			'update_item'       => __( 'Update Brand', 'easycommerce' ),
-			'add_new_item'      => __( 'Add New Brand', 'easycommerce' ),
-			'new_item_name'     => __( 'New Brand Name', 'easycommerce' ),
-			'menu_name'         => __( 'Brands', 'easycommerce' ),
-		];
-
-		$brand_args = [
-			'hierarchical'      => true,
-			'labels'            => $brand_labels,
-			'show_ui'           => true,
-			'show_admin_column' => true,
-			'query_var'         => true,
-			'rewrite'           => [ 'slug' => 'product-brand' ],
-			'show_in_rest'      => true,
-		];
-
-		register_taxonomy( 'product_brand', [ 'product' ], $brand_args );
+		register_taxonomy( 'book_cat', [ 'book' ], $category_args );
 	}
 }
