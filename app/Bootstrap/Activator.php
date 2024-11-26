@@ -19,7 +19,7 @@ class Activator {
 	    // $activator->register_roles();
 	    $activator->register_post_types();
 	    $activator->register_taxonomies();
-	    // $activator->register_thumbnails();
+	    $activator->register_thumbnails();
 	    
 	    // Set a flag that indicates the plugin has been activated
 	    update_option( 'book_shelf_activated', true );

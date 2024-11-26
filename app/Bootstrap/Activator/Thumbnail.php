@@ -1,5 +1,5 @@
 <?php
-namespace EasyCommerce\Bootstrap\Activator;
+namespace BookShelf\Bootstrap\Activator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -13,7 +13,7 @@ class Thumbnail {
     	// Add theme support for Post Thumbnails
     	add_theme_support( 'post-thumbnails' );
 
-        add_image_size( 'easycommerce-gallery-image', 800, 800 );
-        add_image_size( 'easycommerce-gallery-thumbnail', 200, 200, true );
+        // add_image_size( 'book-gallery-image', 800, 800 );
+        add_image_size( 'book-gallery-thumbnail', 200, 200, true );
     }
 }
