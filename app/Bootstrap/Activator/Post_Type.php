@@ -1,5 +1,5 @@
 <?php
-namespace EasyCommerce\Bootstrap\Activator;
+namespace BookShelf\Bootstrap\Activator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -7,20 +7,20 @@ class Post_Type {
 
 	public function register() {
 		$labels = [
-			'name'               => _x( 'Products', 'post type general name', 'easycommerce' ),
-			'singular_name'      => _x( 'Product', 'post type singular name', 'easycommerce' ),
-			'menu_name'          => _x( 'Products [temp]', 'admin menu', 'easycommerce' ),
-			'name_admin_bar'     => _x( 'Product', 'add new on admin bar', 'easycommerce' ),
-			'add_new'            => _x( 'Add New', 'product', 'easycommerce' ),
-			'add_new_item'       => __( 'Add New Product', 'easycommerce' ),
-			'new_item'           => __( 'New Product', 'easycommerce' ),
-			'edit_item'          => __( 'Edit Product', 'easycommerce' ),
-			'view_item'          => __( 'View Product', 'easycommerce' ),
-			'all_items'          => __( 'Products [temp]', 'easycommerce' ),
-			'search_items'       => __( 'Search Products', 'easycommerce' ),
-			'parent_item_colon'  => __( 'Parent Products:', 'easycommerce' ),
-			'not_found'          => __( 'No products found.', 'easycommerce' ),
-			'not_found_in_trash' => __( 'No products found in Trash.', 'easycommerce' )
+			'name'               => _x( 'Books', 'post type general name', 'book-shelf' ),
+			'singular_name'      => _x( 'Book', 'post type singular name', 'book-shelf' ),
+			'menu_name'          => _x( 'Books [temp]', 'admin menu', 'book-shelf' ),
+			'name_admin_bar'     => _x( 'Book', 'add new on admin bar', 'book-shelf' ),
+			'add_new'            => _x( 'Add New', 'Book', 'book-shelf' ),
+			'add_new_item'       => __( 'Add New Book', 'book-shelf' ),
+			'new_item'           => __( 'New Book', 'book-shelf' ),
+			'edit_item'          => __( 'Edit Book', 'book-shelf' ),
+			'view_item'          => __( 'View Book', 'book-shelf' ),
+			'all_items'          => __( 'Book [temp]', 'book-shelf' ),
+			'search_items'       => __( 'Search Books', 'book-shelf' ),
+			'parent_item_colon'  => __( 'Parent Books:', 'book-shelf' ),
+			'not_found'          => __( 'No Books found.', 'book-shelf' ),
+			'not_found_in_trash' => __( 'No Books found in Trash.', 'book-shelf' )
 		];
 
 		$args = [
@@ -30,7 +30,7 @@ class Post_Type {
 			'show_ui'            => true,
 			// 'show_in_menu'       => 'store',
 			'query_var'          => true,
-			'rewrite'            => [ 'slug' => 'products' ],
+			'rewrite'            => [ 'slug' => 'books' ],
 			'capability_type'    => 'page',
 			'has_archive'        => true,
 			'hierarchical'       => false,
@@ -39,7 +39,7 @@ class Post_Type {
 			'show_in_rest'       => true,
 		];
 
-		register_post_type( easycommerce_product_post_type(), $args );
+		register_post_type( 'book', $args );
 	}
 
 }

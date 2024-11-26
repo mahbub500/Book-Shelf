@@ -3,11 +3,11 @@ namespace BookShelf\Bootstrap;
 
 defined( 'ABSPATH' ) || exit;
 
-// use BOOKSHELF\Trait\Hook;
+use BookShelf\Trait\Hook;
 
 class Activator {
 
-	// use Hook;
+	use Hook;
 
 	/**
 	 * Static method for plugin activation tasks.
@@ -17,12 +17,16 @@ class Activator {
 
 	    // $activator->set_cron();
 	    // $activator->register_roles();
-	    // $activator->register_post_types();
+	    $activator->register_post_types();
 	    // $activator->register_taxonomies();
 	    // $activator->register_thumbnails();
 	    
 	    // Set a flag that indicates the plugin has been activated
 	    update_option( 'book_shelf_activated', true );
+	}
+
+	public function register_post_types() {
+		$this->action( 'init', [ new Activator\Post_Type, 'register' ] );
 	}
 
 }
