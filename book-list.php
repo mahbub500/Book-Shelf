@@ -75,53 +75,68 @@ class BookList_Admin {
             add_action('admin_post_add_publisher', [$this, 'add_publisher']);
             add_action('before_delete_post', [$this, 'delete_book_meta']);
             add_action('admin_post_delete_book', [$this, 'delete_book']);
-            add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
+            add_action('admin_post_update_book_meta', [$this, 'update_book_meta']);
+            add_action('admin_enqueue_scripts', [$this, 'enqueue_edit_book_script']);
+            add_action('wp_ajax_update_book', [$this, 'handle_update_book']);
+            
         }
     }
 
-public function add_meta_boxes() {
-    add_meta_box(
-        'book_meta_box',            // ID of the meta box
-        __('Book Metadata', 'book-list'),  // Title of the meta box
-        [$this, 'render_meta_box'],  // Callback to render the content of the meta box
-        'book',                      // Post type where it will appear
-        'normal',                    // Position
-        'high'                       // Priority
-    );
-}
+    // Handle the AJAX request to update book details
+        function handle_update_book() {
+            if (!isset($_POST['form_data'])) {
+                wp_send_json_error(['message' => 'Invalid data']);
+            }
 
-public function render_meta_box($post) {
-    global $wpdb;
-    $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $post->ID));
-    $authors = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}authors");
-    $publishers = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}publishers");
+            parse_str($_POST['form_data'], $formData);
 
-    ?>
-    <p><label for="author_id"><?php _e('Author', 'book-list'); ?></label></p>
-    <select name="author_id" id="author_id" class="regular-text">
-        <option value=""><?php _e('Select Author', 'book-list'); ?></option>
-        <?php foreach ($authors as $author) {
-            echo '<option value="' . esc_attr($author->id) . '" ' . selected($book_meta->author_id, $author->id, false) . '>' . esc_html($author->name) . '</option>';
-        } ?>
-    </select>
+            // Sanitize and get form data
+            $book_id = intval($formData['book_id']);
+            $author_id = intval($formData['author_id']);
+            $publisher_id = intval($formData['publisher_id']);
+            $isbn_number = sanitize_text_field($formData['isbn_number']);
+            $price = floatval($formData['price']);
 
-    <p><label for="publisher_id"><?php _e('Publisher', 'book-list'); ?></label></p>
-    <select name="publisher_id" id="publisher_id" class="regular-text">
-        <option value=""><?php _e('Select Publisher', 'book-list'); ?></option>
-        <?php foreach ($publishers as $publisher) {
-            echo '<option value="' . esc_attr($publisher->id) . '" ' . selected($book_meta->publisher_id, $publisher->id, false) . '>' . esc_html($publisher->name) . '</option>';
-        } ?>
-    </select>
+            global $wpdb;
 
-    <p><label for="isbn_number"><?php _e('ISBN Number', 'book-list'); ?></label></p>
-    <input type="text" name="isbn_number" id="isbn_number" value="<?php echo esc_attr($book_meta->isbn_number); ?>" class="regular-text">
+            // Update the book metadata in the database
+            $update_data = [
+                'author_id' => $author_id,
+                'publisher_id' => $publisher_id,
+                'isbn_number' => $isbn_number,
+                'price' => $price
+            ];
 
-    <p><label for="price"><?php _e('Price', 'book-list'); ?></label></p>
-    <input type="text" name="price" id="price" value="<?php echo esc_attr($book_meta->price); ?>" class="regular-text">
-    
-    <?php
-    wp_nonce_field('book_list_nonce_action', 'book_list_nonce');
-}
+            $where = ['book_id' => $book_id];
+
+            $updated = $wpdb->update($wpdb->prefix . 'book_meta', $update_data, $where);
+
+            if ($updated !== false) {
+                wp_send_json_success();
+            } else {
+                wp_send_json_error(['message' => 'Failed to update the book.']);
+            }
+
+            wp_die();  // Always call this to terminate the AJAX request
+        }
+
+
+
+    function enqueue_edit_book_script() {
+        wp_enqueue_style('book-list-modal-style', plugin_dir_url(__FILE__) . 'css/modal.css');  
+        wp_enqueue_script('jquery');
+        wp_enqueue_script(
+            'edit-book-script',
+            plugin_dir_url(__FILE__) . 'js/edit-book.js',
+            array('jquery'),
+            null,
+            true 
+        );
+
+        // Localize script to pass ajaxurl to JavaScript
+        wp_localize_script('edit-book-script', 'ajaxurl', admin_url('admin-ajax.php'));
+    }
+
 
 
 
@@ -397,12 +412,15 @@ public function render_book_list_page() {
                 $books = get_posts($args);
                 if ($books) {
                     foreach ($books as $book) {
+
                         // Fetch metadata
                         $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $book->ID));
                         $author_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}authors WHERE id = %d", $book_meta->author_id)) : __('Unknown', 'book-list');
                         $isbn_number = $book_meta ? $book_meta->isbn_number : __('Not Available', 'book-list');
                         $price = $book_meta ? $book_meta->price : __('Not Available', 'book-list');
                         $publisher_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}publishers WHERE id = %d", $book_meta->publisher_id)) : __('Unknown', 'book-list');
+
+                        var_dump( $author_name );
 
                         // Generate the 'View' URL
                         $view_url = get_permalink($book->ID);
@@ -414,10 +432,7 @@ public function render_book_list_page() {
                         echo '<td>' . esc_html($price) . '</td>';
                         echo '<td>' . esc_html($publisher_name) . '</td>';
                         echo '<td>';
-                        echo '<a href="' . esc_url($view_url) . '" target="_blank" class="button button-primary">' . __('View', 'book-list') . '</a> | ';
-                    
-                        echo '<a href="' . esc_url(get_edit_post_link($book->ID)) . '" class="button button-primary">' . __('Edit', 'book-list') . '</a> | ';
-
+                        echo '<button class="button button-primary edit-book" data-book-id="' . esc_attr($book->ID) . '" data-author-id="' . esc_attr($book_meta->author_id) . '" data-publisher-id="' . esc_attr($book_meta->publisher_id) . '" data-isbn="' . esc_attr($book_meta->isbn_number) . '" data-price="' . esc_attr($book_meta->price) . '">' . __('Edit', 'book-list') . '</button>';
                         echo '<a href="' . esc_url(admin_url('admin-post.php?action=delete_book&book_id=' . $book->ID)) . '" onclick="return confirm(\'' . __('Are you sure you want to delete this book?', 'book-list') . '\')">' . __('Delete', 'book-list') . '</a>';
                         echo '</td>';
                         echo '</tr>';
@@ -429,8 +444,39 @@ public function render_book_list_page() {
             </tbody>
         </table>
     </div>
+
+    <!-- Modal for editing book -->
+    <!-- Modal HTML Structure -->
+<div id="editBookModal" class="modal">
+    <div id="modalContent">
+        <span class="close">&times;</span>
+        <h2>Edit Book Details</h2>
+        <form id="edit-book-form" method="post" action="">
+            <input type="hidden" id="modal_book_id" name="book_id">
+            <p><label for="modal_author_id">Author:</label>
+            <select id="modal_author_id" name="author_id">
+                <!-- Author options will be populated dynamically with jQuery -->
+            </select></p>
+
+            <p><label for="modal_publisher_id">Publisher:</label>
+            <select id="modal_publisher_id" name="publisher_id">
+                <!-- Publisher options will be populated dynamically with jQuery -->
+            </select></p>
+
+            <p><label for="modal_isbn_number">ISBN Number:</label>
+            <input type="text" id="modal_isbn_number" name="isbn_number"></p>
+
+            <p><label for="modal_price">Price:</label>
+            <input type="number" id="modal_price" name="price"></p>
+
+            <button type="submit" class="button-primary">Update Book</button>
+        </form>
+    </div>
+</div>
+
     <?php
 }
+
 
 
 
