@@ -53,7 +53,9 @@ function book_list_create_tables() {
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql_authors);
     dbDelta($sql_publishers);
-    dbDelta($sql_meta);  // Foreign keys are now part of the table creation query.
+    dbDelta($sql_meta);  
+
+    flush_rewrite_rules();
 }
 
 
@@ -72,8 +74,30 @@ class BookList_Admin {
             add_action('admin_post_add_author', [$this, 'add_author']);
             add_action('admin_post_add_publisher', [$this, 'add_publisher']);
             add_action('before_delete_post', [$this, 'delete_book_meta']);
+            add_action('admin_post_delete_book', [$this, 'delete_book']);
         }
     }
+
+    public function delete_book() {
+    if (isset($_GET['book_id']) && is_numeric($_GET['book_id'])) {
+        $book_id = intval($_GET['book_id']);
+        
+        // Ensure the user has the required permissions
+        if (current_user_can('delete_post', $book_id)) {
+
+            // Delete book metadata from the wp_book_meta table
+            global $wpdb;
+            $wpdb->delete($wpdb->prefix . 'book_meta', ['book_id' => $book_id]);
+
+            // Delete the book post
+            wp_delete_post($book_id, true);  // `true` will forcefully delete the post
+
+            // Redirect back to the book list page
+            wp_redirect(admin_url('admin.php?page=book-list'));
+            exit;
+        }
+    }
+}
 
     // Register custom post type for 'book'
     public function register_post_type() {
@@ -83,10 +107,17 @@ class BookList_Admin {
                 'singular_name' => __('Book', 'book-list'),
             ],
             'public' => true,
-            'show_ui' => false,
+            'show_ui' => false, 
             'show_in_menu' => false,
             'supports' => ['title'],
+            'rewrite' => [
+                'slug' => 'books',  // This defines the URL structure for the books
+                'with_front' => false, // Optionally remove the "front" part from the URL if you have it
+            ],
+            'has_archive' => true, // Enable archive page for books (optional)
+            'show_in_rest' => true, // Optional: Allow the post type to be available in the REST API
         ]);
+
     }
 
     // Register admin menus
@@ -283,59 +314,66 @@ class BookList_Admin {
 }
 
 
-    // Render the Book List page with metadata
-    public function render_book_list_page() {
-        global $wpdb;
-        ?>
-        <div class="wrap">
-            <h1><?php _e('Book List', 'book-list'); ?></h1>
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th><?php _e('Book Name', 'book-list'); ?></th>
-                        <th><?php _e('Author Name', 'book-list'); ?></th>
-                        <th><?php _e('ISBN Number', 'book-list'); ?></th>
-                        <th><?php _e('Price', 'book-list'); ?></th>
-                        <th><?php _e('Publisher', 'book-list'); ?></th>
-                        <th><?php _e('Actions', 'book-list'); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    $args = [
-                        'post_type' => 'book',
-                        'post_status' => 'publish',
-                        'numberposts' => -1
-                    ];
-                    $books = get_posts($args);
-                    if ($books) {
-                        foreach ($books as $book) {
-                            // Fetch metadata
-                            $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $book->ID));
-                            $author_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}authors WHERE id = %d", $book_meta->author_id)) : __('Unknown', 'book-list');
-                            $isbn_number = $book_meta ? $book_meta->isbn_number : __('Not Available', 'book-list');
-                            $price = $book_meta ? $book_meta->price : __('Not Available', 'book-list');
-                            $publisher_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}publishers WHERE id = %d", $book_meta->publisher_id)) : __('Unknown', 'book-list');
+public function render_book_list_page() {
+    global $wpdb;
+    ?>
+    <div class="wrap">
+        <h1><?php _e('Book List', 'book-list'); ?></h1>
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <th><?php _e('Book Name', 'book-list'); ?></th>
+                    <th><?php _e('Author Name', 'book-list'); ?></th>
+                    <th><?php _e('ISBN Number', 'book-list'); ?></th>
+                    <th><?php _e('Price', 'book-list'); ?></th>
+                    <th><?php _e('Publisher', 'book-list'); ?></th>
+                    <th><?php _e('Actions', 'book-list'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $args = [
+                    'post_type' => 'book',
+                    'post_status' => 'publish',
+                    'numberposts' => -1
+                ];
+                $books = get_posts($args);
+                if ($books) {
+                    foreach ($books as $book) {
+                        // Fetch metadata
+                        $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $book->ID));
+                        $author_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}authors WHERE id = %d", $book_meta->author_id)) : __('Unknown', 'book-list');
+                        $isbn_number = $book_meta ? $book_meta->isbn_number : __('Not Available', 'book-list');
+                        $price = $book_meta ? $book_meta->price : __('Not Available', 'book-list');
+                        $publisher_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}publishers WHERE id = %d", $book_meta->publisher_id)) : __('Unknown', 'book-list');
 
-                            echo '<tr>';
-                            echo '<td>' . esc_html($book->post_title) . '</td>';
-                            echo '<td>' . esc_html($author_name) . '</td>';
-                            echo '<td>' . esc_html($isbn_number) . '</td>';
-                            echo '<td>' . esc_html($price) . '</td>';
-                            echo '<td>' . esc_html($publisher_name) . '</td>';
-                            echo '<td><a href="' . esc_url(get_edit_post_link($book->ID)) . '">' . __('Edit', 'book-list') . '</a> | ';
-                            echo '<a href="' . esc_url(admin_url('admin-post.php?action=delete_book&book_id=' . $book->ID)) . '" onclick="return confirm(\'' . __('Are you sure you want to delete this book?', 'book-list') . '\')">' . __('Delete', 'book-list') . '</a></td>';
-                            echo '</tr>';
-                        }
-                    } else {
-                        echo '<tr><td colspan="6">' . __('No books found.', 'book-list') . '</td></tr>';
+                        // Generate the 'View' URL
+                        $view_url = get_permalink($book->ID);
+
+                        echo '<tr>';
+                        echo '<td>' . esc_html($book->post_title) . '</td>';
+                        echo '<td>' . esc_html($author_name) . '</td>';
+                        echo '<td>' . esc_html($isbn_number) . '</td>';
+                        echo '<td>' . esc_html($price) . '</td>';
+                        echo '<td>' . esc_html($publisher_name) . '</td>';
+                        echo '<td>';
+                        echo '<a href="' . esc_url($view_url) . '" target="_blank" class="button button-primary">' . __('View', 'book-list') . '</a> | ';
+                        echo '<a href="' . esc_url(get_edit_post_link($book->ID)) . '">' . __('Edit', 'book-list') . '</a> | ';
+                        echo '<a href="' . esc_url(admin_url('admin-post.php?action=delete_book&book_id=' . $book->ID)) . '" onclick="return confirm(\'' . __('Are you sure you want to delete this book?', 'book-list') . '\')">' . __('Delete', 'book-list') . '</a>';
+                        echo '</td>';
+                        echo '</tr>';
                     }
-                    ?>
-                </tbody>
-            </table>
-        </div>
-        <?php
-    }
+                } else {
+                    echo '<tr><td colspan="6">' . __('No books found.', 'book-list') . '</td></tr>';
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
+    <?php
+}
+
+
 
     // Add new author
     public function add_author() {
