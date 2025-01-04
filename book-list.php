@@ -75,8 +75,56 @@ class BookList_Admin {
             add_action('admin_post_add_publisher', [$this, 'add_publisher']);
             add_action('before_delete_post', [$this, 'delete_book_meta']);
             add_action('admin_post_delete_book', [$this, 'delete_book']);
+            add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
         }
     }
+
+public function add_meta_boxes() {
+    add_meta_box(
+        'book_meta_box',            // ID of the meta box
+        __('Book Metadata', 'book-list'),  // Title of the meta box
+        [$this, 'render_meta_box'],  // Callback to render the content of the meta box
+        'book',                      // Post type where it will appear
+        'normal',                    // Position
+        'high'                       // Priority
+    );
+}
+
+public function render_meta_box($post) {
+    global $wpdb;
+    $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $post->ID));
+    $authors = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}authors");
+    $publishers = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}publishers");
+
+    ?>
+    <p><label for="author_id"><?php _e('Author', 'book-list'); ?></label></p>
+    <select name="author_id" id="author_id" class="regular-text">
+        <option value=""><?php _e('Select Author', 'book-list'); ?></option>
+        <?php foreach ($authors as $author) {
+            echo '<option value="' . esc_attr($author->id) . '" ' . selected($book_meta->author_id, $author->id, false) . '>' . esc_html($author->name) . '</option>';
+        } ?>
+    </select>
+
+    <p><label for="publisher_id"><?php _e('Publisher', 'book-list'); ?></label></p>
+    <select name="publisher_id" id="publisher_id" class="regular-text">
+        <option value=""><?php _e('Select Publisher', 'book-list'); ?></option>
+        <?php foreach ($publishers as $publisher) {
+            echo '<option value="' . esc_attr($publisher->id) . '" ' . selected($book_meta->publisher_id, $publisher->id, false) . '>' . esc_html($publisher->name) . '</option>';
+        } ?>
+    </select>
+
+    <p><label for="isbn_number"><?php _e('ISBN Number', 'book-list'); ?></label></p>
+    <input type="text" name="isbn_number" id="isbn_number" value="<?php echo esc_attr($book_meta->isbn_number); ?>" class="regular-text">
+
+    <p><label for="price"><?php _e('Price', 'book-list'); ?></label></p>
+    <input type="text" name="price" id="price" value="<?php echo esc_attr($book_meta->price); ?>" class="regular-text">
+    
+    <?php
+    wp_nonce_field('book_list_nonce_action', 'book_list_nonce');
+}
+
+
+
 
     public function delete_book() {
     if (isset($_GET['book_id']) && is_numeric($_GET['book_id'])) {
@@ -162,35 +210,44 @@ class BookList_Admin {
     }
 
     // Save book metadata when a book post is saved
+
     public function save_book_meta($post_id, $post, $update) {
-        if (!isset($_POST['book_list_nonce']) || !wp_verify_nonce($_POST['book_list_nonce'], 'book_list_nonce_action')) {
-            return;
-        }
+    // Prevent saving on autosave or if it's not a 'book' post
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if ('book' !== $post->post_type) return;
 
-        if ($post->post_type === 'book') {
-            global $wpdb;
+    // Verify nonce (security check for form submission)
+    if (!isset($_POST['book_list_nonce']) || !wp_verify_nonce($_POST['book_list_nonce'], 'book_list_nonce_action')) {
+        return;
+    }
 
-            // Check if metadata already exists
-            $existing_meta = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $post_id));
+    // Check if the necessary data is available in the form submission
+    if (isset($_POST['author_id'], $_POST['publisher_id'], $_POST['isbn_number'], $_POST['price'])) {
+        global $wpdb;
 
-            // Prepare metadata for insert/update
-            $data = [
-                'book_id' => $post_id,
-                'author_id' => absint($_POST['author_id']),
-                'publisher_id' => absint($_POST['publisher_id']),
-                'isbn_number' => sanitize_text_field($_POST['isbn_number']),
-                'price' => sanitize_text_field($_POST['price']),
-            ];
+        // Prepare the metadata to save/update
+        $data = [
+            'book_id' => $post_id,
+            'author_id' => absint($_POST['author_id']),
+            'publisher_id' => absint($_POST['publisher_id']),
+            'isbn_number' => sanitize_text_field($_POST['isbn_number']),
+            'price' => sanitize_text_field($_POST['price']),
+        ];
 
-            if ($existing_meta) {
-                // Update existing metadata
-                $wpdb->update($wpdb->prefix . 'book_meta', $data, ['book_id' => $post_id]);
-            } else {
-                // Insert new metadata
-                $wpdb->insert($wpdb->prefix . 'book_meta', $data);
-            }
+        // Check if metadata exists for this book, and update it if necessary
+        $existing_meta = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $post_id));
+        
+        if ($existing_meta) {
+            // Update the metadata if it exists
+            $wpdb->update($wpdb->prefix . 'book_meta', $data, ['book_id' => $post_id]);
+        } else {
+            // Insert the new metadata if it doesn't exist
+            $wpdb->insert($wpdb->prefix . 'book_meta', $data);
         }
     }
+}
+
+
 
     // Delete book metadata when a book is deleted
     public function delete_book_meta($post_id) {
@@ -358,7 +415,9 @@ public function render_book_list_page() {
                         echo '<td>' . esc_html($publisher_name) . '</td>';
                         echo '<td>';
                         echo '<a href="' . esc_url($view_url) . '" target="_blank" class="button button-primary">' . __('View', 'book-list') . '</a> | ';
-                        echo '<a href="' . esc_url(get_edit_post_link($book->ID)) . '">' . __('Edit', 'book-list') . '</a> | ';
+                    
+                        echo '<a href="' . esc_url(get_edit_post_link($book->ID)) . '" class="button button-primary">' . __('Edit', 'book-list') . '</a> | ';
+
                         echo '<a href="' . esc_url(admin_url('admin-post.php?action=delete_book&book_id=' . $book->ID)) . '" onclick="return confirm(\'' . __('Are you sure you want to delete this book?', 'book-list') . '\')">' . __('Delete', 'book-list') . '</a>';
                         echo '</td>';
                         echo '</tr>';
