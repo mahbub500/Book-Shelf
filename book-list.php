@@ -214,7 +214,7 @@ class BookList_Admin {
         }
 
         // Redirect after saving
-        wp_redirect(admin_url('admin.php?page=book-list'));
+        // wp_redirect(admin_url('admin.php?page=book-list'));
         exit;
     }
 }
