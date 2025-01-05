@@ -122,7 +122,6 @@ class Admin {
                         $price = $book_meta ? $book_meta->price : __('Not Available', 'book-list');
                         $publisher_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}publishers WHERE id = %d", $book_meta->publisher_id)) : __('Unknown', 'book-list');
 
-                        var_dump( $author_name );
 
                         // Generate the 'View' URL
                         $view_url = get_permalink($book->ID);
