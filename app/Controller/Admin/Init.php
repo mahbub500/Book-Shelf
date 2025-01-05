@@ -1,5 +1,5 @@
 <?php
-namespace BookShelf\Controller\Admin;
+namespace BookShelf\Controller\Public;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -7,7 +7,7 @@ use BookShelf\Trait\Hook;
 use BookShelf\Helper\Utility;
 
 
-class Admin {
+class Init {
 
 	use Hook;
 

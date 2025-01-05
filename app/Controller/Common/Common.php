@@ -1,5 +1,5 @@
 <?php
-namespace BookShelf\Controller\Public;
+namespace BookShelf\Controller\Common;
 
 defined( 'ABSPATH' ) || exit;
 
