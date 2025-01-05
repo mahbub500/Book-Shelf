@@ -1,3 +1,5 @@
+
+console.log( 'tst' );
 jQuery(document).ready(function($) {
     const modal = $("#editBookModal");
     const closeBtn = $(".close");
@@ -62,3 +64,5 @@ jQuery(document).ready(function($) {
         });
     });
 });
+
+

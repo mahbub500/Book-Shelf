@@ -38,7 +38,6 @@ class Initializer {
 
 
 				if ( class_exists( $controller ) ) {
-				print_r( $controller );
 					new $controller;
 				}
 			}
