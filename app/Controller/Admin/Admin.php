@@ -167,6 +167,7 @@ class Admin {
                     <th><?php _e('ISBN Number', 'book-list'); ?></th>
                     <th><?php _e('Price', 'book-list'); ?></th>
                     <th><?php _e('Publisher', 'book-list'); ?></th>
+                    <th><?php _e('Image', 'book-list'); ?></th>
                     <th><?php _e('Actions', 'book-list'); ?></th>
                 </tr>
             </thead>
@@ -205,12 +206,24 @@ class Admin {
                         $price = $book_meta ? $book_meta->price : __('Not Available', 'book-list');
                         $publisher_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}publishers WHERE id = %d", $book_meta->publisher_id)) : __('Unknown', 'book-list');
 
+                       
+                       $image = $book_meta ? $book_meta->image_id : __('Not Available', 'book-list');
+
+
                         echo '<tr>';
                         echo '<td>' . esc_html($book->post_title) . '</td>';
                         echo '<td>' . esc_html($author_name) . '</td>';
                         echo '<td>' . esc_html($isbn_number) . '</td>';
                         echo '<td>' . esc_html($price) . '</td>';
                         echo '<td>' . esc_html($publisher_name) . '</td>';
+
+                       if ($image) {
+                            $image_url = wp_get_attachment_url($image); 
+
+                            echo '<td><img src="' . esc_url($image_url) . '" alt="Book Image" width="100" /></td>';
+                        } else {
+                            echo '<td>No Image</td>'; // Fallback if no image is available
+                        }
                         echo '<td>';
                         echo '<button class="button button-primary edit-book" data-book-id="' . esc_attr($book->ID) . '" data-author-id="' . esc_attr($book_meta->author_id ?? '') . '" data-publisher-id="' . esc_attr($book_meta->publisher_id ?? '') . '" data-isbn="' . esc_attr($book_meta->isbn_number ?? '') . '" data-price="' . esc_attr($book_meta->price ?? '') . '">' . __('Edit', 'book-list') . '</button>';
                         echo '<a href="' . esc_url(admin_url('admin-post.php?action=delete_book&book_id=' . $book->ID)) . '" onclick="return confirm(\'' . __('Are you sure you want to delete this book?', 'book-list') . '\')">' . __('Delete', 'book-list') . '</a>';
