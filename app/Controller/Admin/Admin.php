@@ -171,14 +171,26 @@ class Admin {
             </thead>
             <tbody>
                 <?php
+                $current_user_id = get_current_user_id();
+                $entry_by = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE entry_by = %d", $current_user_id ));
+
                 $args = [
                     'post_type' => 'book',
                     'post_status' => 'publish',
                     'numberposts' => -1
                 ];
-                $books = get_posts($args);
-                if ($books) {
-                    foreach ($books as $book) {
+                $_books = get_posts($args);
+
+                $filtered_books = [];
+                foreach ($_books as $_book) {
+                    $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $_book->ID));
+                    if ($book_meta && $book_meta->entry_by == $current_user_id) {
+                        $filtered_books[] = $_book;
+                    }
+                }
+
+                if ($filtered_books) {
+                    foreach ($filtered_books as $book) {
 
                         // Fetch metadata
                         $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $book->ID));
