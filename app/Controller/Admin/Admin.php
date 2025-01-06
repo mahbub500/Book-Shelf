@@ -182,14 +182,15 @@ class Admin {
 
                         // Fetch metadata
                         $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $book->ID));
-                        $author_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}authors WHERE id = %d", $book_meta->author_id)) : __('Unknown', 'book-list');
+
+                        // Ensure author_id is valid
+                        $author_name = $book_meta && !empty($book_meta->author_id)
+                            ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}authors WHERE id = %d", $book_meta->author_id))
+                            : __('Unknown', 'book-list');
+                        
                         $isbn_number = $book_meta ? $book_meta->isbn_number : __('Not Available', 'book-list');
                         $price = $book_meta ? $book_meta->price : __('Not Available', 'book-list');
                         $publisher_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}publishers WHERE id = %d", $book_meta->publisher_id)) : __('Unknown', 'book-list');
-
-
-                        // Generate the 'View' URL
-                        $view_url = get_permalink($book->ID);
 
                         echo '<tr>';
                         echo '<td>' . esc_html($book->post_title) . '</td>';
@@ -198,7 +199,7 @@ class Admin {
                         echo '<td>' . esc_html($price) . '</td>';
                         echo '<td>' . esc_html($publisher_name) . '</td>';
                         echo '<td>';
-                        echo '<button class="button button-primary edit-book" data-book-id="' . esc_attr($book->ID) . '" data-author-id="' . esc_attr($book_meta->author_id) . '" data-publisher-id="' . esc_attr($book_meta->publisher_id) . '" data-isbn="' . esc_attr($book_meta->isbn_number) . '" data-price="' . esc_attr($book_meta->price) . '">' . __('Edit', 'book-list') . '</button>';
+                        echo '<button class="button button-primary edit-book" data-book-id="' . esc_attr($book->ID) . '" data-author-id="' . esc_attr($book_meta->author_id ?? '') . '" data-publisher-id="' . esc_attr($book_meta->publisher_id ?? '') . '" data-isbn="' . esc_attr($book_meta->isbn_number ?? '') . '" data-price="' . esc_attr($book_meta->price ?? '') . '">' . __('Edit', 'book-list') . '</button>';
                         echo '<a href="' . esc_url(admin_url('admin-post.php?action=delete_book&book_id=' . $book->ID)) . '" onclick="return confirm(\'' . __('Are you sure you want to delete this book?', 'book-list') . '\')">' . __('Delete', 'book-list') . '</a>';
                         echo '</td>';
                         echo '</tr>';
@@ -210,6 +211,8 @@ class Admin {
             </tbody>
         </table>
     </div>
+    
+
 
 	    <!-- Modal HTML Structure -->
 	<div id="editBookModal" class="modal">
