@@ -403,19 +403,22 @@ class Admin {
 	    if (isset($_POST['author_id'], $_POST['publisher_id'], $_POST['isbn_number'], $_POST['price'])) {
 	        global $wpdb;
 
+            $current_user_id = get_current_user_id();
+
 	        // Prepare the metadata to save/update
 	        $data = [
-	            'book_id' => $post_id,
-	            'author_id' => absint($_POST['author_id']),
+	            'book_id'      => $post_id,
+	            'author_id'    => absint($_POST['author_id']),
 	            'publisher_id' => absint($_POST['publisher_id']),
-	            'isbn_number' => sanitize_text_field($_POST['isbn_number']),
-	            'price' => sanitize_text_field($_POST['price']),
+	            'isbn_number'  => sanitize_text_field($_POST['isbn_number']),
+	            'price'        => sanitize_text_field($_POST['price']),
+                'entry_by'     => $current_user_id,
 	        ];
 
 	        // Check if metadata exists for this book, and update it if necessary
 	        $existing_meta = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $post_id));
 	        
-	        if ($existing_meta) {
+	        if ( $existing_meta ) {
 	            // Update the metadata if it exists
 	            $wpdb->update($wpdb->prefix . 'book_meta', $data, ['book_id' => $post_id]);
 	        } else {
