@@ -18,6 +18,7 @@ class Admin {
 	public function __construct() {
 
 		 add_action('init', [$this, 'register_post_type']);
+         add_action('init', [$this, 'book_list_create_tables']);
 		 add_action('admin_menu', [$this, 'register_admin_pages']);
 		 add_action('save_post', [$this, 'save_book_meta'], 10, 3);
 		 add_action('admin_post_add_author', [$this, 'add_author']);
@@ -27,6 +28,62 @@ class Admin {
 
 		 add_action('wp_ajax_update_book', [$this, 'handle_update_book']);		
 	}
+
+    
+
+    function book_list_create_tables() {
+    global $wpdb;
+    $charset_collate = $wpdb->get_charset_collate();
+    
+    // Table for Authors
+    $table_name_authors = $wpdb->prefix . 'authors';
+    if (!table_exists($table_name_authors)) {
+        $sql_authors = "CREATE TABLE $table_name_authors (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            name VARCHAR(255) NOT NULL,
+            PRIMARY KEY (id)
+        ) $charset_collate ENGINE=InnoDB;";
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql_authors);
+    }
+
+    // Table for Publishers
+    $table_name_publishers = $wpdb->prefix . 'publishers';
+    if (!table_exists($table_name_publishers)) {
+        $sql_publishers = "CREATE TABLE $table_name_publishers (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            name VARCHAR(255) NOT NULL,
+            PRIMARY KEY (id)
+        ) $charset_collate ENGINE=InnoDB;";
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql_publishers);
+    }
+
+    // Table for Book Metadata
+    $table_name_meta = $wpdb->prefix . 'book_meta';
+    if (!table_exists($table_name_meta)) {
+        $sql_meta = "CREATE TABLE $table_name_meta (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            book_id BIGINT(20) UNSIGNED NOT NULL,
+            author_id BIGINT(20) UNSIGNED NOT NULL,
+            publisher_id BIGINT(20) UNSIGNED NOT NULL,
+            isbn_number VARCHAR(20) NOT NULL,
+            price DECIMAL(10, 2) NOT NULL,
+            PRIMARY KEY (id),
+            FOREIGN KEY (book_id) REFERENCES {$wpdb->prefix}posts(ID) ON DELETE CASCADE,
+            FOREIGN KEY (author_id) REFERENCES {$wpdb->prefix}authors(id) ON DELETE CASCADE,
+            FOREIGN KEY (publisher_id) REFERENCES {$wpdb->prefix}publishers(id) ON DELETE CASCADE
+        ) $charset_collate ENGINE=InnoDB;";
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql_meta);
+    }
+
+    // Flush rewrite rules
+    flush_rewrite_rules();
+
+        
+    }
+
 
 	public function register_post_type() {
         register_post_type('book', [
