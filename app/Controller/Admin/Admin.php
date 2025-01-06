@@ -265,7 +265,7 @@ class Admin {
         ?>
         <div class="wrap">
             <h1><?php _e('Add New Book', 'book-list'); ?></h1>
-            <form method="post" action="">
+            <form method="post" action="" enctype="multipart/form-data">
                 <?php wp_nonce_field('book_list_nonce_action', 'book_list_nonce'); ?>
                 <table class="form-table">
                     <tr>
@@ -311,6 +311,15 @@ class Admin {
                             </select>
                         </td>
                     </tr>
+                   <tr>
+                    <th>Upload Image</th>
+                    <td>
+                        <input type="file" name="book_image" required>
+                        <button type="submit" name="upload_image">Upload Image</button>
+                    </td>
+                        
+                    </tr>
+                   
                     <tr>
                         <th><label for="price"><?php _e('Is In My Libery', 'book-list'); ?></label></th>
                         <td><input type="checkbox" id="is_in_library" name="is_in_library" checked class="regular-text" required></td>
