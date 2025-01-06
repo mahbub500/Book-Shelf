@@ -70,6 +70,7 @@ class Admin {
             isbn_number VARCHAR(20) NOT NULL,
             price DECIMAL(10, 2) NOT NULL,
             entry_by BIGINT(20) UNSIGNED DEFAULT NULL,
+            image_id BIGINT(20) UNSIGNED DEFAULT NULL,
             borrower_id VARCHAR(255) DEFAULT NULL,
             borrow_date DATE DEFAULT NULL,
             return_date DATE DEFAULT NULL,
@@ -314,8 +315,7 @@ class Admin {
                    <tr>
                     <th>Upload Image</th>
                     <td>
-                        <input type="file" name="book_image" required>
-                        <button type="submit" name="upload_image">Upload Image</button>
+                        <input type="file" name="book_image" >
                     </td>
                         
                     </tr>
@@ -410,44 +410,73 @@ class Admin {
 
     // Save book metadata when a book post is saved
 
-    public function save_book_meta($post_id, $post, $update) {
-	    // Prevent saving on autosave or if it's not a 'book' post
-	    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-	    if ('book' !== $post->post_type) return;
+public function save_book_meta($post_id, $post, $update) {
+    // Prevent saving on autosave or if it's not a 'book' post
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if ('book' !== $post->post_type) return;
 
-	    // Verify nonce (security check for form submission)
-	    if (!isset($_POST['book_list_nonce']) || !wp_verify_nonce($_POST['book_list_nonce'], 'book_list_nonce_action')) {
-	        return;
-	    }
+    // Verify nonce (security check for form submission)
+    if (!isset($_POST['book_list_nonce']) || !wp_verify_nonce($_POST['book_list_nonce'], 'book_list_nonce_action')) {
+        return;
+    }
 
-	    // Check if the necessary data is available in the form submission
-	    if (isset($_POST['author_id'], $_POST['publisher_id'], $_POST['isbn_number'], $_POST['price'])) {
-	        global $wpdb;
+    // Check if the necessary data is available in the form submission
+    if (isset($_POST['author_id'], $_POST['publisher_id'], $_POST['isbn_number'], $_POST['price'])) {
+        global $wpdb;
 
-            $current_user_id = get_current_user_id();
+        $current_user_id = get_current_user_id();
+        $attachment_id = '';
 
-	        // Prepare the metadata to save/update
-	        $data = [
-	            'book_id'      => $post_id,
-	            'author_id'    => absint($_POST['author_id']),
-	            'publisher_id' => absint($_POST['publisher_id']),
-	            'isbn_number'  => sanitize_text_field($_POST['isbn_number']),
-	            'price'        => sanitize_text_field($_POST['price']),
-                'entry_by'     => $current_user_id,
-	        ];
+        if (isset($_FILES['book_image']) && $_FILES['book_image']['error'] === UPLOAD_ERR_OK) {
+            $uploaded_file = $_FILES['book_image'];
+            $upload_dir = wp_upload_dir();
+            $target_dir = $upload_dir['path'] . '/';
+            $file_name = basename($uploaded_file['name']);
+            $target_file = $target_dir . $file_name;
 
-	        // Check if metadata exists for this book, and update it if necessary
-	        $existing_meta = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $post_id));
-	        
-	        if ( $existing_meta ) {
-	            // Update the metadata if it exists
-	            $wpdb->update($wpdb->prefix . 'book_meta', $data, ['book_id' => $post_id]);
-	        } else {
-	            // Insert the new metadata if it doesn't exist
-	            $wpdb->insert($wpdb->prefix . 'book_meta', $data);
-	        }
-	    }
-	}
+            if (move_uploaded_file($uploaded_file['tmp_name'], $target_file)) {
+                $attachment = array(
+                    'post_mime_type' => $uploaded_file['type'],
+                    'post_title'     => preg_replace('/\.[^.]+$/', '', $file_name),
+                    'post_content'   => '',
+                    'post_status'    => 'inherit',
+                );
+
+                $_attachment_id = wp_insert_attachment($attachment, $target_file);
+
+                if (!empty($_attachment_id)) {
+                    $attachment_id = $_attachment_id;
+                } 
+            } 
+        }
+
+        // Prepare the metadata to save/update
+        $data = [
+            'book_id'      => $post_id,
+            'author_id'    => absint($_POST['author_id']),
+            'publisher_id' => absint($_POST['publisher_id']),
+            'isbn_number'  => sanitize_text_field($_POST['isbn_number']),
+            'price'        => sanitize_text_field($_POST['price']),
+            'entry_by'     => $current_user_id,
+        ];
+
+        if (!empty($attachment_id)) {
+            $data['image_id'] = $attachment_id;
+        }
+
+        // Check if metadata exists for this book, and update it if necessary
+        $existing_meta = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $post_id));
+
+        if ($existing_meta) {
+            // Update the metadata if it exists
+            $wpdb->update($wpdb->prefix . 'book_meta', $data, ['book_id' => $post_id]);
+        } else {
+            // Insert the new metadata if it doesn't exist
+            $wpdb->insert($wpdb->prefix . 'book_meta', $data);
+        }
+    }
+}
+
 
 
     // Delete book metadata when a book is deleted
