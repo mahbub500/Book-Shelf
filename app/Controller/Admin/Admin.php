@@ -29,7 +29,7 @@ class Admin {
 		 add_action('wp_ajax_update_book', [$this, 'handle_update_book']);		
 	}
 
-    
+
 
     function book_list_create_tables() {
     global $wpdb;
@@ -272,6 +272,8 @@ class Admin {
                         <th><label for="price"><?php _e('Price', 'book-list'); ?></label></th>
                         <td><input type="number" id="price" name="price" class="regular-text" required></td>
                     </tr>
+
+                    
                     <tr>
                         <th><label for="publisher_id"><?php _e('Publisher', 'book-list'); ?></label></th>
                         <td>
@@ -285,6 +287,10 @@ class Admin {
                                 ?>
                             </select>
                         </td>
+                    </tr>
+                    <tr>
+                        <th><label for="price"><?php _e('My Libery', 'book-list'); ?></label></th>
+                        <td><input type="checkbox" id="my_libery" name="my_libery" checked class="regular-text" required></td>
                     </tr>
                 </table>
                 <p class="submit">
