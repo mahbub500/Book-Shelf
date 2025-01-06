@@ -25,7 +25,6 @@ class Admin {
 		 add_action('admin_post_add_publisher', [$this, 'add_publisher']);
 		 add_action('before_delete_post', [$this, 'delete_book_meta']);
 		 add_action('admin_post_delete_book', [$this, 'delete_book']);
-
 		 add_action('wp_ajax_update_book', [$this, 'handle_update_book']);		
 	}
 
@@ -226,6 +225,7 @@ class Admin {
                         }
                         echo '<td>';
                         echo '<button class="button button-primary edit-book" data-book-id="' . esc_attr($book->ID) . '" data-author-id="' . esc_attr($book_meta->author_id ?? '') . '" data-publisher-id="' . esc_attr($book_meta->publisher_id ?? '') . '" data-isbn="' . esc_attr($book_meta->isbn_number ?? '') . '" data-price="' . esc_attr($book_meta->price ?? '') . '">' . __('Edit', 'book-list') . '</button>';
+
                         echo '<a href="' . esc_url(admin_url('admin-post.php?action=delete_book&book_id=' . $book->ID)) . '" onclick="return confirm(\'' . __('Are you sure you want to delete this book?', 'book-list') . '\')">' . __('Delete', 'book-list') . '</a>';
                         echo '</td>';
                         echo '</tr>';
