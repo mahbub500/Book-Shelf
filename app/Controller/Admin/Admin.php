@@ -69,11 +69,19 @@ class Admin {
             publisher_id BIGINT(20) UNSIGNED NOT NULL,
             isbn_number VARCHAR(20) NOT NULL,
             price DECIMAL(10, 2) NOT NULL,
+            entry_by BIGINT(20) UNSIGNED DEFAULT NULL,
+            borrower_id VARCHAR(255) DEFAULT NULL,
+            borrow_date DATE DEFAULT NULL,
+            return_date DATE DEFAULT NULL,
+            is_returned TINYINT(1) DEFAULT 0,
+            is_in_library TINYINT(1) DEFAULT 1, 
             PRIMARY KEY (id),
             FOREIGN KEY (book_id) REFERENCES {$wpdb->prefix}posts(ID) ON DELETE CASCADE,
             FOREIGN KEY (author_id) REFERENCES {$wpdb->prefix}authors(id) ON DELETE CASCADE,
             FOREIGN KEY (publisher_id) REFERENCES {$wpdb->prefix}publishers(id) ON DELETE CASCADE
         ) $charset_collate ENGINE=InnoDB;";
+
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql_meta);
     }
@@ -289,8 +297,8 @@ class Admin {
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="price"><?php _e('My Libery', 'book-list'); ?></label></th>
-                        <td><input type="checkbox" id="my_libery" name="my_libery" checked class="regular-text" required></td>
+                        <th><label for="price"><?php _e('Is In My Libery', 'book-list'); ?></label></th>
+                        <td><input type="checkbox" id="is_in_library" name="is_in_library" checked class="regular-text" required></td>
                     </tr>
                 </table>
                 <p class="submit">
