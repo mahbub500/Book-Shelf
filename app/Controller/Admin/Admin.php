@@ -36,7 +36,7 @@ class Admin {
     
     // Table for Authors
     $table_name_authors = $wpdb->prefix . 'authors';
-    if (!table_exists($table_name_authors)) {
+    if ( !table_exists( $table_name_authors )) {
         $sql_authors = "CREATE TABLE $table_name_authors (
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             name VARCHAR(255) NOT NULL,
@@ -56,34 +56,6 @@ class Admin {
         ) $charset_collate ENGINE=InnoDB;";
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql_publishers);
-    }
-
-    // Table for Book Metadata
-    $table_name_meta = $wpdb->prefix . 'book_meta';
-    if (!table_exists($table_name_meta)) {
-        $sql_meta = "CREATE TABLE $table_name_meta (
-            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-            book_id BIGINT(20) UNSIGNED NOT NULL,
-            author_id BIGINT(20) UNSIGNED NOT NULL,
-            publisher_id BIGINT(20) UNSIGNED NOT NULL,
-            isbn_number VARCHAR(20) NOT NULL,
-            price DECIMAL(10, 2) NOT NULL,
-            entry_by BIGINT(20) UNSIGNED DEFAULT NULL,
-            image_id BIGINT(20) UNSIGNED DEFAULT NULL,
-            borrower_id VARCHAR(255) DEFAULT NULL,
-            borrow_date DATE DEFAULT NULL,
-            return_date DATE DEFAULT NULL,
-            is_returned TINYINT(1) DEFAULT 0,
-            is_in_library TINYINT(1) DEFAULT 1, 
-            PRIMARY KEY (id),
-            FOREIGN KEY (book_id) REFERENCES {$wpdb->prefix}posts(ID) ON DELETE CASCADE,
-            FOREIGN KEY (author_id) REFERENCES {$wpdb->prefix}authors(id) ON DELETE CASCADE,
-            FOREIGN KEY (publisher_id) REFERENCES {$wpdb->prefix}publishers(id) ON DELETE CASCADE
-        ) $charset_collate ENGINE=InnoDB;";
-
-
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql_meta);
     }
 
     // Flush rewrite rules
@@ -180,18 +152,12 @@ class Admin {
                     'post_status' => 'publish',
                     'numberposts' => -1
                 ];
-                $_books = get_posts($args);
+                $books = get_posts( $args );
 
-                $filtered_books = [];
-                foreach ($_books as $_book) {
-                    $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $_book->ID));
-                    if ($book_meta && $book_meta->entry_by == $current_user_id) {
-                        $filtered_books[] = $_book;
-                    }
-                }
+                
 
-                if ($filtered_books) {
-                    foreach ($filtered_books as $book) {
+                if ($books) {
+                    foreach ($books as $book) {
 
                         // Fetch metadata
                         $book_meta = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $book->ID));
@@ -206,7 +172,7 @@ class Admin {
                         $publisher_name = $book_meta ? $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}publishers WHERE id = %d", $book_meta->publisher_id)) : __('Unknown', 'book-list');
 
                        
-                       $image = $book_meta ? $book_meta->image_id : __('Not Available', 'book-list');
+                       // $image = $book_meta ? $book_meta->image_id : __('Not Available', 'book-list');
 
 
                         echo '<tr>';
@@ -437,10 +403,10 @@ public function save_book_meta($post_id, $post, $update) {
     if (isset($_POST['author_id'], $_POST['publisher_id'], $_POST['isbn_number'], $_POST['price'])) {
         global $wpdb;
 
-        $current_user_id = get_current_user_id();
-        $attachment_id = '';
+        $current_user_id    = get_current_user_id();
+        $attachment_id      = '';
 
-        if (isset($_FILES['book_image']) && $_FILES['book_image']['error'] === UPLOAD_ERR_OK) {
+        if ( isset( $_FILES['book_image'] ) && $_FILES['book_image']['error'] === UPLOAD_ERR_OK ) {
             $uploaded_file = $_FILES['book_image'];
             $upload_dir = wp_upload_dir();
             $target_dir = $upload_dir['path'] . '/';
@@ -466,27 +432,25 @@ public function save_book_meta($post_id, $post, $update) {
         // Prepare the metadata to save/update
         $data = [
             'book_id'      => $post_id,
-            'author_id'    => absint($_POST['author_id']),
-            'publisher_id' => absint($_POST['publisher_id']),
-            'isbn_number'  => sanitize_text_field($_POST['isbn_number']),
-            'price'        => sanitize_text_field($_POST['price']),
+            'author_id'    => absint( $_POST['author_id'] ),
+            'publisher_id' => absint( $_POST['publisher_id'] ),
+            'isbn_number'  => sanitize_text_field( $_POST['isbn_number'] ),
+            'price'        => sanitize_text_field( $_POST['price'] ),
             'entry_by'     => $current_user_id,
         ];
 
         if (!empty($attachment_id)) {
-            $data['image_id'] = $attachment_id;
+            update_post_meta( $post_id, 'image_id', $attachment_id );
+
         }
 
-        // Check if metadata exists for this book, and update it if necessary
-        $existing_meta = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}book_meta WHERE book_id = %d", $post_id));
+        update_post_meta( $post_id, 'author_id', absint( $_POST['author_id'] ) );
+        update_post_meta( $post_id, 'publisher_id', absint( $_POST['publisher_id'] ) );
+        update_post_meta( $post_id, 'isbn_number', sanitize_text_field( $_POST['isbn_number'] ) );
+        update_post_meta( $post_id, 'price', sanitize_text_field( $_POST['price'] ) );
+        update_post_meta( $post_id, 'entry_by', $current_user_id );
 
-        if ($existing_meta) {
-            // Update the metadata if it exists
-            $wpdb->update($wpdb->prefix . 'book_meta', $data, ['book_id' => $post_id]);
-        } else {
-            // Insert the new metadata if it doesn't exist
-            $wpdb->insert($wpdb->prefix . 'book_meta', $data);
-        }
+        
     }
 }
 
